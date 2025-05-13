@@ -8,9 +8,9 @@ export default defineConfig([
   { ignores: ['webroot'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ['src/devvit/**/*.{ts,tsx}', 'src/main.tsx'],
+    files: ['src/devvit/**/*.{ts,tsx}'],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2023,
       globals: globals.node,
     },
   },
@@ -18,7 +18,7 @@ export default defineConfig([
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['tools/**/*.{ts,tsx,mjs,cjs,js}'],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2023,
       globals: globals.node,
     },
   },
@@ -26,7 +26,7 @@ export default defineConfig([
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['src/server/**/*.{ts,tsx,mjs,cjs,js}'],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2023,
       globals: globals.node,
     },
   },
@@ -34,7 +34,7 @@ export default defineConfig([
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['src/client/**/*.{ts,tsx}'],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2023,
       globals: globals.browser,
     },
   },

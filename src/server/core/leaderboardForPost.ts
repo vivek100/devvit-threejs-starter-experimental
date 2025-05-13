@@ -1,6 +1,6 @@
 import { Devvit } from '@devvit/public-api';
 import { userGet } from './user';
-import { User } from '../../../shared/types/user';
+import { User } from '../../shared/types/user';
 
 const getLeaderboardForPostKey = (postId: string) => `leaderboard:${postId}` as const;
 

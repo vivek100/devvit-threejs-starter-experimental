@@ -7,9 +7,9 @@ import { Ticker } from './ticker';
 import { getEnv } from './utils/env';
 import { Pool } from './utils/pool';
 import { Devvit } from './devvit';
-import type { PostConfig } from '../../shared/types/postConfig';
-import { User } from '../../shared/types/user';
-import { InitMessage } from '../../shared/types/message';
+import type { PostConfig } from '../shared/types/postConfig';
+import { User } from '../shared/types/user';
+import { InitMessage } from '../shared/types/message';
 
 type GameState = 'loading' | 'ready' | 'playing' | 'ended' | 'resetting';
 

@@ -8,8 +8,8 @@ import {
   leaderboardForPostUpsertIfHigherScore,
 } from './core/leaderboardForPost';
 import { setPlayingIfNotExists, userGetOrSet, noUser } from './core/user';
-import { GameOverResponse, LeaderboardResponse } from '../../shared/types/game';
-import { type InitMessage } from '../../shared/types/message';
+import { GameOverResponse, LeaderboardResponse } from '../shared/types/game';
+import { type InitMessage } from '../shared/types/message';
 import { postConfigGet } from './core/post';
 
 const app = express();

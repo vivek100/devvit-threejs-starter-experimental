@@ -1,6 +1,6 @@
 import type { Devvit } from '@devvit/public-api';
-import type { User } from '../../../shared/types/user';
-import { noUsername, noSnoovatarURL, noId } from '../../../shared/types/user';
+import type { User } from '../../shared/types/user';
+import { noUsername, noSnoovatarURL, noId } from '../../shared/types/user';
 import { RequestContext } from '@devvit/server';
 
 export function noUser(): User {

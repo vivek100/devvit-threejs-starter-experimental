@@ -1,4 +1,4 @@
-import { GameOverBody, GameOverResponse, LeaderboardResponse } from '../../shared/types/game';
+import { GameOverBody, GameOverResponse, LeaderboardResponse } from '../shared/types/game';
 
 export class Devvit {
   userId: string | null | undefined;

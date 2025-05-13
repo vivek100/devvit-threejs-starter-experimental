@@ -1,5 +1,5 @@
 import { Context } from '@devvit/public-api';
-import { PostConfig } from '../../../shared/types/postConfig';
+import { PostConfig } from '../../shared/types/postConfig';
 import { RequestContext } from '@devvit/server';
 
 const getPostConfigKey = (postId: string) => `post_config:${postId}` as const;

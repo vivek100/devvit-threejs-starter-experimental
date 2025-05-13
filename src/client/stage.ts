@@ -7,7 +7,7 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
-import type { PostConfig } from '../../shared/types/postConfig';
+import type { PostConfig } from '../shared/types/postConfig';
 
 export class Stage {
   private container: HTMLElement;
