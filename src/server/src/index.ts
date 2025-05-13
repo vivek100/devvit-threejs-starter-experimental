@@ -26,6 +26,50 @@ app.use(devvitMiddleware);
 
 const router = express.Router();
 
+router.get<{ postId: string }, InitMessage | { status: string; message: string }>(
+  '/api/init',
+  async (req, res): Promise<void> => {
+    const { redis, userId, postId } = req.devvit;
+
+    if (!postId) {
+      console.error('API Init Error: postId not found in devvit context');
+      res
+        .status(400)
+        .json({ status: 'error', message: 'postId is required but missing from context' });
+      return;
+    }
+
+    try {
+      const [postConfig, user, leaderboard, userAllTimeStats] = await Promise.all([
+        postConfigGet({ redis, postId }),
+        userGetOrSet({ ctx: req.devvit }),
+        leaderboardForPostGet({ redis, postId, limit: 4 }),
+        leaderboardForPostForUserGet({
+          redis,
+          postId,
+          userId: userId ?? noUser().id,
+        }),
+      ]);
+
+      res.json({
+        type: 'init',
+        postConfig,
+        user,
+        userAllTimeStats,
+        postId: postId,
+        leaderboard,
+      });
+    } catch (error) {
+      console.error(`API Init Error for post ${postId}:`, error);
+      let errorMessage = 'Unknown error during initialization';
+      if (error instanceof Error) {
+        errorMessage = `Initialization failed: ${error.message}`;
+      }
+      res.status(500).json({ status: 'error', message: errorMessage });
+    }
+  }
+);
+
 router.post<{ postId: string }, GameOverResponse, { score: number }>(
   '/api/post/game-over',
   async (req, res): Promise<void> => {
@@ -114,50 +158,6 @@ router.get<{ postId: string }, LeaderboardResponse>(
       status: 'success',
       leaderboard,
     });
-  }
-);
-
-router.get<{ postId: string }, InitMessage | { status: string; message: string }>(
-  '/api/init',
-  async (req, res): Promise<void> => {
-    const { redis, userId, postId } = req.devvit;
-
-    if (!postId) {
-      console.error('API Init Error: postId not found in devvit context');
-      res
-        .status(400)
-        .json({ status: 'error', message: 'postId is required but missing from context' });
-      return;
-    }
-
-    try {
-      const [postConfig, user, leaderboard, userAllTimeStats] = await Promise.all([
-        postConfigGet({ redis, postId }),
-        userGetOrSet({ ctx: req.devvit }),
-        leaderboardForPostGet({ redis, postId, limit: 4 }),
-        leaderboardForPostForUserGet({
-          redis,
-          postId,
-          userId: userId ?? noUser().id,
-        }),
-      ]);
-
-      res.json({
-        type: 'init',
-        postConfig,
-        user,
-        userAllTimeStats,
-        postId: postId,
-        leaderboard,
-      });
-    } catch (error) {
-      console.error(`API Init Error for post ${postId}:`, error);
-      let errorMessage = 'Unknown error during initialization';
-      if (error instanceof Error) {
-        errorMessage = `Initialization failed: ${error.message}`;
-      }
-      res.status(500).json({ status: 'error', message: errorMessage });
-    }
   }
 );
 
