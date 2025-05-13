@@ -5,6 +5,21 @@ import '../server/src/index';
 import { defineConfig } from '@devvit/server';
 import { postConfigNew } from '../server/src/core/post';
 
+defineConfig({
+  name: 'TowerBlocks',
+  description: 'Can you build the tallest tower?',
+  entry: 'index.html',
+  height: 'tall',
+  inline: true,
+  // TODO: Cannot use without webhooks
+  // menu: {
+  //   enable: true,
+  //   label: 'New TowerBlocks Post',
+  //   postTitle: 'TowerBlocks',
+  //   preview: <Preview />,
+  // },
+});
+
 export const Preview: Devvit.BlockComponent<{ text?: string }> = ({ text = 'Loading...' }) => {
   return (
     <zstack width={'100%'} height={'100%'} alignment="center middle">
@@ -61,21 +76,6 @@ Devvit.addMenuItem({
       }
     }
   },
-});
-
-defineConfig({
-  name: 'TowerBlocks',
-  description: 'Can you build the tallest tower?',
-  entry: 'index.html',
-  height: 'tall',
-  inline: true,
-  // TODO: Cannot use without webhooks
-  // menu: {
-  //   enable: true,
-  //   label: 'New TowerBlocks Post',
-  //   postTitle: 'TowerBlocks',
-  //   preview: <Preview />,
-  // },
 });
 
 export default Devvit;
