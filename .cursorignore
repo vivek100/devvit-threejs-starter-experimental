@@ -6,3 +6,4 @@ webroot
 tsconfig.json
 vite.config.ts
 node_modules
+eslint.config.js
