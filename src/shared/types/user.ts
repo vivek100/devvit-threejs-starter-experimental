@@ -2,7 +2,7 @@
 export type User = {
   /** Player user ID. t2_0 for anons. */
   id: string;
-  /** Player username. eg, spez. */
+  /** Player username. eg, user123. */
   username: string;
   /** The user's avatar URL. */
   snoovatarUrl: string;
