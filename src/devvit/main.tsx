@@ -10,8 +10,7 @@ defineConfig({
   description: 'Can you build the tallest tower?',
   entry: 'index.html',
   height: 'tall',
-  inline: true,
-  // TODO: Cannot use without webhooks
+  // TODO: Cannot use without ability to pass in post metadata
   // menu: {
   //   enable: true,
   //   label: 'New TowerBlocks Post',
