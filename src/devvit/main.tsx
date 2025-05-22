@@ -9,6 +9,7 @@ defineConfig({
   name: 'TowerBlocks',
   entry: 'index.html',
   height: 'tall',
+  menu: { enable: false },
   // TODO: Cannot use without ability to pass in post metadata
   // menu: {
   //   enable: true,
