@@ -1,6 +1,5 @@
-import { Context } from '@devvit/public-api';
 import { PostConfig } from '../../shared/types/postConfig';
-import { RequestContext } from '@devvit/server';
+import { getRedis } from '@devvit/redis';
 
 const getPostConfigKey = (postId: string) => `post_config:${postId}` as const;
 
@@ -86,50 +85,38 @@ const defaultPostConfig: PostConfig = {
 };
 
 export const postConfigMaybeGet = async ({
-  redis,
   postId,
 }: {
-  redis: Context['redis'];
   postId: string;
 }): Promise<PostConfig | undefined> => {
-  const config = await redis.get(getPostConfigKey(postId));
+  const config = await getRedis().get(getPostConfigKey(postId));
   return config ? JSON.parse(config) : undefined;
 };
 
-export const postConfigGet = async ({
-  redis,
-  postId,
-}: {
-  redis: Context['redis'];
-  postId: string;
-}): Promise<PostConfig> => {
-  const config = await postConfigMaybeGet({ redis, postId });
+export const postConfigGet = async ({ postId }: { postId: string }): Promise<PostConfig> => {
+  const config = await postConfigMaybeGet({ postId });
   if (!config) throw new Error('Post config not found');
   return config;
 };
 
 export const postConfigSet = async ({
-  redis,
   postId,
   config,
 }: {
-  redis: Context['redis'];
   postId: string;
   config: Partial<PostConfig>;
 }): Promise<void> => {
-  await redis.set(getPostConfigKey(postId), JSON.stringify(config));
+  await getRedis().set(getPostConfigKey(postId), JSON.stringify(config));
 };
 
 export const postConfigNew = async ({
-  ctx,
   postId,
   config,
 }: {
-  ctx: Context | RequestContext;
   postId: string;
   config?: Partial<PostConfig>;
 }): Promise<void> => {
-  await ctx.redis.set(
+  await getRedis().set(
     getPostConfigKey(postId),
     JSON.stringify({ ...defaultPostConfig, ...config })
   );

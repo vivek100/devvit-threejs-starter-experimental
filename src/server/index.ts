@@ -29,23 +29,23 @@ const router = express.Router();
 router.get<{ postId: string }, InitMessage | { status: string; message: string }>(
   '/api/init',
   async (req, res): Promise<void> => {
-    const { redis, userId, postId } = req.devvit;
+    const { userId, postId } = req.devvit;
 
     if (!postId) {
       console.error('API Init Error: postId not found in devvit context');
-      res
-        .status(400)
-        .json({ status: 'error', message: 'postId is required but missing from context' });
+      res.status(400).json({
+        status: 'error',
+        message: 'postId is required but missing from context',
+      });
       return;
     }
 
     try {
       const [postConfig, user, leaderboard, userAllTimeStats] = await Promise.all([
-        postConfigGet({ redis, postId }),
+        postConfigGet({ postId }),
         userGetOrSet({ ctx: req.devvit }),
-        leaderboardForPostGet({ redis, postId, limit: 4 }),
+        leaderboardForPostGet({ postId, limit: 4 }),
         leaderboardForPostForUserGet({
-          redis,
           postId,
           userId: userId ?? noUser().id,
         }),
@@ -106,24 +106,20 @@ router.post<{ postId: string }, GameOverResponse, { score: number }>(
 
     await Promise.all([
       leaderboardForPostUpsertIfHigherScore({
-        redis: req.devvit.redis,
         postId,
         userId: req.devvit.userId,
         score: score,
       }),
       setPlayingIfNotExists({
-        redis: req.devvit.redis,
         userId: req.devvit.userId,
       }),
     ]);
 
     const [leaderboard, userAllTimeStats] = await Promise.all([
       leaderboardForPostGet({
-        redis: req.devvit.redis,
         postId,
       }),
       leaderboardForPostForUserGet({
-        redis: req.devvit.redis,
         postId,
         userId: req.devvit.userId,
       }),
@@ -150,7 +146,6 @@ router.get<{ postId: string }, LeaderboardResponse>(
     }
 
     const leaderboard = await leaderboardForPostGet({
-      redis: req.devvit.redis,
       postId,
     });
 

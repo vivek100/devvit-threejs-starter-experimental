@@ -1,7 +1,7 @@
-import type { Devvit } from '@devvit/public-api';
 import type { User } from '../../shared/types/user';
 import { noUsername, noSnoovatarURL, noId } from '../../shared/types/user';
 import { RequestContext } from '@devvit/server';
+import { getRedis } from '@devvit/redis';
 
 export function noUser(): User {
   return {
@@ -15,14 +15,8 @@ export function noUser(): User {
 // to truncate redis for an app at the moment
 const getUserKey = (userId: string) => `user:${userId}` as const;
 
-export const userMaybeGet = async ({
-  redis,
-  userId,
-}: {
-  redis: Devvit.Context['redis'];
-  userId: string;
-}): Promise<User | undefined> => {
-  const user = await redis.hGetAll(getUserKey(userId));
+export const userMaybeGet = async ({ userId }: { userId: string }): Promise<User | undefined> => {
+  const user = await getRedis().hgetall(getUserKey(userId));
 
   if (Object.keys(user).length === 0) {
     return undefined;
@@ -31,10 +25,7 @@ export const userMaybeGet = async ({
   return deserialize(user);
 };
 
-export const userGet = async (args: {
-  redis: Devvit.Context['redis'];
-  userId: string;
-}): Promise<User> => {
+export const userGet = async (args: { userId: string }): Promise<User> => {
   const user = await userMaybeGet(args);
 
   if (!user) {
@@ -44,14 +35,8 @@ export const userGet = async (args: {
   return user;
 };
 
-export const setPlayingIfNotExists = async ({
-  redis,
-  userId,
-}: {
-  redis: Devvit.Context['redis'];
-  userId: string;
-}): Promise<number> => {
-  const result = await redis.hSetNX(
+export const setPlayingIfNotExists = async ({ userId }: { userId: string }): Promise<number> => {
+  const result = await getRedis().hsetnx(
     getUserKey(userId),
     'startedPlayingAt',
     new Date().toISOString()
@@ -61,21 +46,18 @@ export const setPlayingIfNotExists = async ({
 };
 
 export const userSet = async ({
-  redis,
   user,
 }: {
-  redis: Devvit.Context['redis'];
   // TODO: Shouldn't need to submit the entire user anymore since we're using a hash
   user: User;
 }): Promise<void> => {
-  await redis.hSet(getUserKey(user.id), serialize(user));
+  await getRedis().hset(getUserKey(user.id), serialize(user));
 };
 
 export const userGetOrSet = async ({ ctx }: { ctx: RequestContext }): Promise<User> => {
   if (!ctx.userId) return noUser();
 
   const maybeProfile = await userMaybeGet({
-    redis: ctx.redis,
     userId: ctx.userId,
   });
 
@@ -92,7 +74,6 @@ export const userGetOrSet = async ({ ctx }: { ctx: RequestContext }): Promise<Us
   };
 
   await userSet({
-    redis: ctx.redis,
     user,
   });
 
