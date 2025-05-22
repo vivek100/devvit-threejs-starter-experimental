@@ -7,7 +7,6 @@ import { postConfigNew } from '../server/core/post';
 
 defineConfig({
   name: 'TowerBlocks',
-  description: 'Can you build the tallest tower?',
   entry: 'index.html',
   height: 'tall',
   // TODO: Cannot use without ability to pass in post metadata
