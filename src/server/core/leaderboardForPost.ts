@@ -1,14 +1,16 @@
+import { Devvit } from '@devvit/public-api';
 import { userGet } from './user';
 import { User } from '../../shared/types/user';
-import { getRedis } from '@devvit/redis';
 
 const getLeaderboardForPostKey = (postId: string) => `leaderboard:${postId}` as const;
 
 export const leaderboardForPostGet = async ({
+  redis,
   postId,
   sort = 'DESC',
   limit = 100,
 }: {
+  redis: Devvit.Context['redis'];
   postId: string;
   sort?: 'ASC' | 'DESC';
   limit?: number;
@@ -19,7 +21,7 @@ export const leaderboardForPostGet = async ({
     score: number;
   }[]
 > => {
-  const result = await getRedis().zrange(getLeaderboardForPostKey(postId), 0, limit - 1, {
+  const result = await redis.zRange(getLeaderboardForPostKey(postId), 0, limit - 1, {
     by: 'rank',
     reverse: sort === 'DESC',
   });
@@ -27,6 +29,7 @@ export const leaderboardForPostGet = async ({
   const users = await Promise.all(
     result.map((x) =>
       userGet({
+        redis,
         userId: x.member,
       })
     )
@@ -48,15 +51,17 @@ export const leaderboardForPostGet = async ({
 };
 
 export const leaderboardForPostForUserGet = async ({
+  redis,
   postId,
   userId,
 }: {
+  redis: Devvit.Context['redis'];
   postId: string;
   userId: string;
 }): Promise<{ rank: number; score: number }> => {
   const [rank, score] = await Promise.all([
-    getRedis().zrank(getLeaderboardForPostKey(postId), userId),
-    getRedis().zscore(getLeaderboardForPostKey(postId), userId),
+    redis.zRank(getLeaderboardForPostKey(postId), userId),
+    redis.zScore(getLeaderboardForPostKey(postId), userId),
   ]);
 
   if (rank == null || score == null) {
@@ -69,18 +74,20 @@ export const leaderboardForPostForUserGet = async ({
  * Adds if the user doesn't exist, otherwise updates the score
  */
 export const leaderboardForPostUpsertIfHigherScore = async ({
+  redis,
   postId,
   userId,
   score,
 }: {
+  redis: Devvit.Context['redis'];
   postId: string;
   userId: string;
   score: number;
 }): Promise<void> => {
   const key = getLeaderboardForPostKey(postId);
-  const currentScore = await getRedis().zscore(key, userId);
+  const currentScore = await redis.zScore(key, userId);
   if (currentScore === undefined || score > currentScore) {
-    await getRedis().zadd(key, {
+    await redis.zAdd(key, {
       member: userId,
       score,
     });

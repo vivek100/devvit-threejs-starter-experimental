@@ -59,6 +59,7 @@ Devvit.addMenuItem({
         preview: <Preview />,
       });
       await postConfigNew({
+        ctx: context,
         postId: post.id,
       });
       ui.showToast({ text: 'Created post!' });
