@@ -1,5 +1,5 @@
 import express from 'express';
-import { createServer } from '@devvit/server';
+import { createServer } from 'node:http';
 
 import { devvitMiddleware } from './middleware';
 import {
@@ -33,9 +33,10 @@ router.get<{ postId: string }, InitMessage | { status: string; message: string }
 
     if (!postId) {
       console.error('API Init Error: postId not found in devvit context');
-      res
-        .status(400)
-        .json({ status: 'error', message: 'postId is required but missing from context' });
+      res.status(400).json({
+        status: 'error',
+        message: 'postId is required but missing from context',
+      });
       return;
     }
 
