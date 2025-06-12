@@ -1,7 +1,6 @@
 import express from 'express';
-import { createServer } from 'node:http';
+import { createServer, getContext } from '@devvit/server';
 
-import { devvitMiddleware } from './middleware';
 import {
   leaderboardForPostForUserGet,
   leaderboardForPostGet,
@@ -11,6 +10,8 @@ import { setPlayingIfNotExists, userGetOrSet, noUser } from './core/user';
 import { GameOverResponse, LeaderboardResponse } from '../shared/types/game';
 import { type InitMessage } from '../shared/types/message';
 import { postConfigGet } from './core/post';
+import { getReddit } from '@devvit/reddit';
+import { getRedis } from '@devvit/redis';
 
 const app = express();
 
@@ -21,29 +22,26 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware for plain text body parsing
 app.use(express.text());
 
-// Apply Devvit middleware
-app.use(devvitMiddleware);
-
 const router = express.Router();
 
 router.get<{ postId: string }, InitMessage | { status: string; message: string }>(
   '/api/init',
-  async (req, res): Promise<void> => {
-    const { redis, userId, postId } = req.devvit;
+  async (_req, res): Promise<void> => {
+    const { userId, postId } = getContext();
+    const redis = getRedis();
 
     if (!postId) {
       console.error('API Init Error: postId not found in devvit context');
-      res.status(400).json({
-        status: 'error',
-        message: 'postId is required but missing from context',
-      });
+      res
+        .status(400)
+        .json({ status: 'error', message: 'postId is required but missing from context' });
       return;
     }
 
     try {
       const [postConfig, user, leaderboard, userAllTimeStats] = await Promise.all([
         postConfigGet({ redis, postId }),
-        userGetOrSet({ ctx: req.devvit }),
+        userGetOrSet({ redis, userId, reddit: getReddit() }),
         leaderboardForPostGet({ redis, postId, limit: 4 }),
         leaderboardForPostForUserGet({
           redis,
@@ -76,7 +74,8 @@ router.post<{ postId: string }, GameOverResponse, { score: number }>(
   async (req, res): Promise<void> => {
     const { score } = req.body;
 
-    const { postId } = req.devvit;
+    const { postId, userId } = getContext();
+    const redis = getRedis();
     if (!postId) {
       res.status(400).json({
         status: 'error',
@@ -93,7 +92,7 @@ router.post<{ postId: string }, GameOverResponse, { score: number }>(
       return;
     }
 
-    if (!req.devvit.userId) {
+    if (!userId) {
       res.status(400).json({
         status: 'error',
         message: 'Must be logged in to play',
@@ -102,31 +101,33 @@ router.post<{ postId: string }, GameOverResponse, { score: number }>(
     }
 
     await userGetOrSet({
-      ctx: req.devvit,
+      redis,
+      userId,
+      reddit: getReddit(),
     });
 
     await Promise.all([
       leaderboardForPostUpsertIfHigherScore({
-        redis: req.devvit.redis,
+        redis,
         postId,
-        userId: req.devvit.userId,
+        userId,
         score: score,
       }),
       setPlayingIfNotExists({
-        redis: req.devvit.redis,
-        userId: req.devvit.userId,
+        redis,
+        userId,
       }),
     ]);
 
     const [leaderboard, userAllTimeStats] = await Promise.all([
       leaderboardForPostGet({
-        redis: req.devvit.redis,
+        redis,
         postId,
       }),
       leaderboardForPostForUserGet({
-        redis: req.devvit.redis,
+        redis,
         postId,
-        userId: req.devvit.userId,
+        userId,
       }),
     ]);
     res.json({
@@ -139,8 +140,9 @@ router.post<{ postId: string }, GameOverResponse, { score: number }>(
 
 router.get<{ postId: string }, LeaderboardResponse>(
   '/api/post/leaderboard',
-  async (req, res): Promise<void> => {
-    const { postId } = req.devvit;
+  async (_req, res): Promise<void> => {
+    const { postId } = getContext();
+    const redis = getRedis();
 
     if (!postId) {
       res.status(400).json({
@@ -151,7 +153,7 @@ router.get<{ postId: string }, LeaderboardResponse>(
     }
 
     const leaderboard = await leaderboardForPostGet({
-      redis: req.devvit.redis,
+      redis,
       postId,
     });
 

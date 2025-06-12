@@ -1,6 +1,7 @@
 import { Devvit } from '@devvit/public-api';
 import { userGet } from './user';
 import { User } from '../../shared/types/user';
+import { RedisClient } from '@devvit/redis';
 
 const getLeaderboardForPostKey = (postId: string) => `leaderboard:${postId}` as const;
 
@@ -10,7 +11,7 @@ export const leaderboardForPostGet = async ({
   sort = 'DESC',
   limit = 100,
 }: {
-  redis: Devvit.Context['redis'];
+  redis: Devvit.Context['redis'] | RedisClient;
   postId: string;
   sort?: 'ASC' | 'DESC';
   limit?: number;
@@ -55,7 +56,7 @@ export const leaderboardForPostForUserGet = async ({
   postId,
   userId,
 }: {
-  redis: Devvit.Context['redis'];
+  redis: Devvit.Context['redis'] | RedisClient;
   postId: string;
   userId: string;
 }): Promise<{ rank: number; score: number }> => {
@@ -79,7 +80,7 @@ export const leaderboardForPostUpsertIfHigherScore = async ({
   userId,
   score,
 }: {
-  redis: Devvit.Context['redis'];
+  redis: Devvit.Context['redis'] | RedisClient;
   postId: string;
   userId: string;
   score: number;

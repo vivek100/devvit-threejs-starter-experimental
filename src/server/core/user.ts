@@ -1,7 +1,8 @@
 import type { Devvit } from '@devvit/public-api';
 import type { User } from '../../shared/types/user';
 import { noUsername, noSnoovatarURL, noId } from '../../shared/types/user';
-import { RequestContext } from '@devvit/server';
+import { RedditClient } from '@devvit/reddit';
+import { RedisClient } from '@devvit/redis';
 
 export function noUser(): User {
   return {
@@ -19,7 +20,7 @@ export const userMaybeGet = async ({
   redis,
   userId,
 }: {
-  redis: Devvit.Context['redis'];
+  redis: Devvit.Context['redis'] | RedisClient;
   userId: string;
 }): Promise<User | undefined> => {
   const user = await redis.hGetAll(getUserKey(userId));
@@ -32,7 +33,7 @@ export const userMaybeGet = async ({
 };
 
 export const userGet = async (args: {
-  redis: Devvit.Context['redis'];
+  redis: Devvit.Context['redis'] | RedisClient;
   userId: string;
 }): Promise<User> => {
   const user = await userMaybeGet(args);
@@ -48,7 +49,7 @@ export const setPlayingIfNotExists = async ({
   redis,
   userId,
 }: {
-  redis: Devvit.Context['redis'];
+  redis: Devvit.Context['redis'] | RedisClient;
   userId: string;
 }): Promise<number> => {
   const result = await redis.hSetNX(
@@ -64,26 +65,34 @@ export const userSet = async ({
   redis,
   user,
 }: {
-  redis: Devvit.Context['redis'];
+  redis: Devvit.Context['redis'] | RedisClient;
   // TODO: Shouldn't need to submit the entire user anymore since we're using a hash
   user: User;
 }): Promise<void> => {
   await redis.hSet(getUserKey(user.id), serialize(user));
 };
 
-export const userGetOrSet = async ({ ctx }: { ctx: RequestContext }): Promise<User> => {
-  if (!ctx.userId) return noUser();
+export const userGetOrSet = async ({
+  redis,
+  userId,
+  reddit,
+}: {
+  redis: Devvit.Context['redis'] | RedisClient;
+  userId: string | undefined;
+  reddit: Devvit.Context['reddit'] | RedditClient;
+}): Promise<User> => {
+  if (!userId) return noUser();
 
   const maybeProfile = await userMaybeGet({
-    redis: ctx.redis,
-    userId: ctx.userId,
+    redis,
+    userId,
   });
 
   if (maybeProfile) return maybeProfile;
 
-  const userProfile = await ctx.reddit.getUserById(ctx.userId);
+  const userProfile = await reddit.getUserById(userId);
   if (!userProfile) return noUser();
-  const avatar = await ctx.reddit.getSnoovatarUrl(userProfile.username);
+  const avatar = await reddit.getSnoovatarUrl(userProfile.username);
 
   const user: User = {
     id: userProfile.id,
@@ -92,7 +101,7 @@ export const userGetOrSet = async ({ ctx }: { ctx: RequestContext }): Promise<Us
   };
 
   await userSet({
-    redis: ctx.redis,
+    redis,
     user,
   });
 

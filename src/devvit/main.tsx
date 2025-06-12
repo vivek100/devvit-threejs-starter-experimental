@@ -1,23 +1,6 @@
 import { Devvit, Post } from '@devvit/public-api';
 
-// Side effect import to bundle the server. The /index is required for server splitting.
-import '../server/index';
-import { defineConfig } from '@devvit/server';
 import { postConfigNew } from '../server/core/post';
-
-defineConfig({
-  name: 'TowerBlocks',
-  entry: 'index.html',
-  height: 'tall',
-  menu: { enable: false },
-  // TODO: Cannot use without ability to pass in post metadata
-  // menu: {
-  //   enable: true,
-  //   label: 'New TowerBlocks Post',
-  //   postTitle: 'TowerBlocks',
-  //   preview: <Preview />,
-  // },
-});
 
 export const Preview: Devvit.BlockComponent<{ text?: string }> = ({ text = 'Loading...' }) => {
   return (
@@ -59,7 +42,7 @@ Devvit.addMenuItem({
         preview: <Preview />,
       });
       await postConfigNew({
-        ctx: context,
+        redis: context.redis,
         postId: post.id,
       });
       ui.showToast({ text: 'Created post!' });
