@@ -2,6 +2,11 @@ import { Devvit, Post } from '@devvit/public-api';
 
 import { postConfigNew } from '../server/core/post';
 
+Devvit.configure({
+  redis: true,
+  redditAPI: true,
+});
+
 export const Preview: Devvit.BlockComponent<{ text?: string }> = ({ text = 'Loading...' }) => {
   return (
     <zstack width={'100%'} height={'100%'} alignment="center middle">

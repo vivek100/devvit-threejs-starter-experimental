@@ -7,7 +7,10 @@
       "entry": "dist/client/index.html"
     },
     "create": {
-      "onInstall": false
+      "onInstall": false,
+      "menu": {
+        "enable": false
+      }
     }
   },
   "server": {
@@ -15,6 +18,9 @@
   },
   "media": {},
   "blocks": {
-    "entry": "src/devvit/main.tsx"
+    "entry": "src/devvit/main.tsx",
+    "menu": {
+      "enable": true
+    }
   }
 }

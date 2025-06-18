@@ -1,5 +1,5 @@
 import express from 'express';
-import { createServer, getContext } from '@devvit/server';
+import { createServer, context } from '@devvit/server';
 
 import {
   leaderboardForPostForUserGet,
@@ -10,8 +10,8 @@ import { setPlayingIfNotExists, userGetOrSet, noUser } from './core/user';
 import { GameOverResponse, LeaderboardResponse } from '../shared/types/game';
 import { type InitMessage } from '../shared/types/message';
 import { postConfigGet } from './core/post';
-import { getReddit } from '@devvit/reddit';
-import { getRedis } from '@devvit/redis';
+import { reddit } from '@devvit/reddit';
+import { redis } from '@devvit/redis';
 
 const app = express();
 
@@ -27,8 +27,7 @@ const router = express.Router();
 router.get<{ postId: string }, InitMessage | { status: string; message: string }>(
   '/api/init',
   async (_req, res): Promise<void> => {
-    const { userId, postId } = getContext();
-    const redis = getRedis();
+    const { userId, postId } = context;
 
     if (!postId) {
       console.error('API Init Error: postId not found in devvit context');
@@ -41,7 +40,7 @@ router.get<{ postId: string }, InitMessage | { status: string; message: string }
     try {
       const [postConfig, user, leaderboard, userAllTimeStats] = await Promise.all([
         postConfigGet({ redis, postId }),
-        userGetOrSet({ redis, userId, reddit: getReddit() }),
+        userGetOrSet({ redis, userId, reddit }),
         leaderboardForPostGet({ redis, postId, limit: 4 }),
         leaderboardForPostForUserGet({
           redis,
@@ -74,8 +73,7 @@ router.post<{ postId: string }, GameOverResponse, { score: number }>(
   async (req, res): Promise<void> => {
     const { score } = req.body;
 
-    const { postId, userId } = getContext();
-    const redis = getRedis();
+    const { postId, userId } = context;
     if (!postId) {
       res.status(400).json({
         status: 'error',
@@ -103,7 +101,7 @@ router.post<{ postId: string }, GameOverResponse, { score: number }>(
     await userGetOrSet({
       redis,
       userId,
-      reddit: getReddit(),
+      reddit,
     });
 
     await Promise.all([
@@ -141,8 +139,7 @@ router.post<{ postId: string }, GameOverResponse, { score: number }>(
 router.get<{ postId: string }, LeaderboardResponse>(
   '/api/post/leaderboard',
   async (_req, res): Promise<void> => {
-    const { postId } = getContext();
-    const redis = getRedis();
+    const { postId } = context;
 
     if (!postId) {
       res.status(400).json({
