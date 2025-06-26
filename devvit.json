@@ -13,6 +13,10 @@
       }
     }
   },
+  "brand": {
+  "primaryColor": "#000000",
+  "backgroundColor": "#FFFFFF",
+},
   "server": {
     "entry": "dist/server/index.cjs"
   },
